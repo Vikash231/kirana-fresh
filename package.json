@@ -1,0 +1,31 @@
+{
+  "name": "agentic-commerce-rails",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Trust rails for agentic commerce on Razorpay test-mode: agent-readable catalog (MCP), AI buyer agent, mandate + policy gate, hash-chained audit ledger.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "demo": "tsx --env-file-if-exists=.env src/cli.ts demo",
+    "mcp-demo": "tsx --env-file-if-exists=.env src/cli.ts mcp-demo",
+    "agent": "tsx --env-file-if-exists=.env src/cli.ts agent",
+    "bench": "tsx --env-file-if-exists=.env src/cli.ts bench",
+    "mcp": "tsx --env-file-if-exists=.env src/merchant/mcp-server.ts",
+    "audit": "tsx --env-file-if-exists=.env src/cli.ts audit",
+    "verify": "tsx --env-file-if-exists=.env src/cli.ts verify",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@google/genai": "^2.19.0",
+    "@modelcontextprotocol/sdk": "^1.20.0",
+    "razorpay": "^2.9.6",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

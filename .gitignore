@@ -1,0 +1,7 @@
+node_modules/
+.env
+audit/*.jsonl
+bench-out/
+
+# Ed25519 private keys — never commit
+keys/
