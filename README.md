@@ -298,6 +298,7 @@ cp .env.example .env      # optional — omit for the built-in fake gateway
 
 npm run demo              # 5-step walkthrough: mandate → purchase → refusal → recovery → replay
 npm run mcp-demo          # full transaction over MCP, scripted buyer (no LLM, no API key)
+npm run mcp-demo:fake     # same, forced onto the fake gateway so it completes end to end
 npm run agent             # LLM buyer shopping over MCP — needs GEMINI_API_KEY (free, no card)
 npm run bench             # 50-transaction evidence batch
 npm run audit -- <cartId> # read one transaction end to end

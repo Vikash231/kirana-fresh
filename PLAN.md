@@ -208,6 +208,13 @@ sees no keys.
 **`keys/` was not gitignored initially.** It is now. It holds Ed25519 private keys;
 never commit it. `.env` likewise.
 
+**Live keys change what a demo shows.** With `RAZORPAY_*` set, `mcp-demo` and
+`agent` end at `AWAITING_EXTERNAL_AUTHORIZATION` rather than `COMPLETED` — correct,
+since authorization is buyer-side, but it reads as a failure on camera. Use
+`npm run mcp-demo:fake` / `npm run agent:fake` (`FORCE_FAKE=1`) to show a purchase
+completing, and the plain commands to show a real Payment Link being created. A
+walkthrough wants both, in that order.
+
 **Razorpay Payment Links return `payments: null`**, not an empty array, when no
 payment exists. The `?? []` guard in `live.ts` handles it. Whether it populates
 after a real payment is untested — this matters, because `fetchOrderPayments` is

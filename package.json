@@ -10,7 +10,9 @@
   "scripts": {
     "demo": "tsx --env-file-if-exists=.env src/cli.ts demo",
     "mcp-demo": "tsx --env-file-if-exists=.env src/cli.ts mcp-demo",
+    "mcp-demo:fake": "FORCE_FAKE=1 tsx --env-file-if-exists=.env src/cli.ts mcp-demo",
     "agent": "tsx --env-file-if-exists=.env src/cli.ts agent",
+    "agent:fake": "FORCE_FAKE=1 tsx --env-file-if-exists=.env src/cli.ts agent",
     "bench": "tsx --env-file-if-exists=.env src/cli.ts bench",
     "mcp": "tsx --env-file-if-exists=.env src/merchant/mcp-server.ts",
     "audit": "tsx --env-file-if-exists=.env src/cli.ts audit",

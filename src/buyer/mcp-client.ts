@@ -12,7 +12,7 @@ export class MerchantClient {
     // back to the fake gateway. Forward the merchant's Razorpay credentials
     // explicitly, and nothing else: the merchant has no use for an LLM key.
     const inherited = Object.fromEntries(
-      ["HOME", "LOGNAME", "PATH", "SHELL", "TERM", "USER", "RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET"]
+      ["HOME", "LOGNAME", "PATH", "SHELL", "TERM", "USER", "RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET", "FORCE_FAKE"]
         .map((k) => [k, process.env[k]])
         .filter((e): e is [string, string] => e[1] !== undefined),
     );
