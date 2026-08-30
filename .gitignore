@@ -1,5 +1,10 @@
 node_modules/
+
+# Credentials. The wildcard matters: a stray `.env.bak` or `.env.local` holds the
+# same live keys as `.env` and would otherwise be untracked-but-committable.
 .env
+.env.*
+!.env.example
 audit/*.jsonl
 bench-out/
 

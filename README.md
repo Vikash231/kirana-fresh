@@ -27,6 +27,14 @@ has no tool that moves funds. Assembling, signing, and settling is deterministic
 code sitting behind a policy engine — which means a confused or adversarial model
 cannot spend outside its mandate, because it never holds the pen.
 
+What the model is *not* denied is information. `search_products` returns the
+merchant's entire catalog and the buyer labels each result `inMandate` rather than
+filtering the forbidden ones away. Hiding them looks safer and is not: it puts a
+second, invisible control outside the twelve rules, and it makes the agent tell
+the person something false. Asked for an electric kettle — stocked, but in a
+category the mandate excludes — the agent now answers *"the merchant sells this,
+your mandate does not cover it"* instead of *"they do not carry appliances"*.
+
 One consequence is worth stating plainly: **exactly one file imports an LLM SDK**
 (`src/buyer/agent.ts`). Nothing under `core/`, `razorpay/`, `recon/` or `merchant/`
 references a model provider at all. The agent currently runs on Gemini Flash-Lite
@@ -383,10 +391,6 @@ Stated plainly, because a submission that hides its edges is worse than one that
 - **Live authorization cannot complete without a webhook.** `authorize()` returns a
   real Payment Link and stops; nothing resumes the flow when the buyer pays. Until
   that exists, a live run ends at `AWAITING_EXTERNAL_AUTHORIZATION` by design.
-- **The agent can't distinguish "absent" from "forbidden".** Asked for a kettle, it
-  searched only its allowed categories, found nothing, and reported that the
-  merchant does not stock kettles. It stocks 25 — they are in a category the
-  mandate excludes. The honest answer was "outside your mandate", not "not sold".
 - **Keys live on disk** under `keys/`. A real deployment keeps the principal's key
   in the user's wallet and the merchant's in an HSM; the agent should never hold a
   key that can authorize spend, only one that can attest to a cart.

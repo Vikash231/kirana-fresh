@@ -101,6 +101,31 @@ approval covering ₹210.00, replayed onto a ₹430.50 cart
   → APPROVAL_DENIED · "approval covers ₹210.00 but the cart totals ₹430.50"
 ```
 
+### Out-of-mandate items are labelled, never hidden
+
+`search_products` returns the merchant's whole catalog, and the buyer annotates
+each result with `inMandate` before the model sees it. It is tempting to filter
+instead — it looks safer. It isn't, twice over: filtering is a second, invisible
+control outside the twelve rules, and it makes the model state something false.
+
+Measured, before the labelling existed — asked for an electric kettle, which the
+merchant stocks 25 of in `electronics`:
+
+```
+"they do not carry appliances in their catalog"        ← false
+```
+
+And after:
+
+```
+"The merchant stocks an electric kettle (₹1,299.00), but it falls under
+ electronics. Your mandate only permits groceries and household. Therefore
+ I cannot buy this item for you."
+```
+
+The gate still refuses the cart either way. The difference is whether the person
+is told the truth about why.
+
 ### Everything is integer paise
 
 `1 INR = 100 paise`, matching Razorpay's `amount` field. No floats anywhere in the
@@ -152,32 +177,6 @@ behavioural — "it runs and prints the right thing" — which is not the same a
 
 ## 4. Known bugs
 
-### The agent reports "forbidden" as "absent"
-
-Asked to buy an electric kettle, the agent searched only the categories its
-mandate allows, found nothing, and told the user:
-
-> *"they do not carry appliances in their catalog"*
-
-False. The merchant stocks 25 (`ELC-KETTLE-1L`), in `electronics`, which the
-mandate excludes. The two answers are very different and it gave the wrong one.
-
-**Root cause:** we hide out-of-mandate items from the model, so it cannot tell
-"absent" from "forbidden". That is backwards for a project whose thesis is *the
-model proposes, the policy engine disposes* — filtering before the model sees
-anything is a second, hidden control, and it produced a false statement.
-
-**Fix (~20 min):** let the agent search everything and label what it may not buy.
-
-```
-search_products "kettle"
-  → Electric kettle, 1 L · ₹1,532.82
-    inMandate: false — "electronics" is not in your allowed categories
-```
-
-It also unblocks something: the buyer-gate refusal path *inside the agent* has
-never fired, because the agent can't construct a refusable cart today.
-
 ### Live authorization cannot complete
 
 `authorize()` creates a real Payment Link and returns `pending_external`. Nothing
@@ -200,6 +199,12 @@ guess. **If you add a credential the merchant needs, add it to that list too.**
 **Gemini retires model names quickly.** `gemini-2.5-flash-lite` returns 404 for new
 keys; the current one is `gemini-3.5-flash-lite`. If `npm run agent` 404s, that's
 why. Override with `GEMINI_MODEL`.
+
+**A duplicated key in `.env` silently wins.** If `.env.example` gets appended to a
+working `.env`, the empty placeholders sit *after* the real values and Node keeps
+the last one — every key reads as unset and `npm run agent` reports a missing
+`GEMINI_API_KEY` while the key is right there in the file. Check for duplicate
+names before believing the error.
 
 **`.env` needs loading.** Node does not read it automatically — every npm script
 carries `tsx --env-file-if-exists=.env`. A new script without that flag silently
@@ -229,14 +234,13 @@ In priority order. Effort figures are estimates.
 | # | Task | Why | Effort |
 |---|---|---|---|
 | 1 | **5-minute pitch video** | Submission requirement, not started | — |
-| 2 | Fix "forbidden vs absent" (§4) | A wrong answer a judge could hit in one prompt | 20 min |
-| 3 | Re-run a code review | ~3,100 lines with no adversarial read | 1 hr |
-| 4 | Test suite over the twelve rules | Rules can currently be deleted silently | 2 hrs |
-| 5 | Add a LICENSE | Repo has none; MIT is the usual pick | 5 min |
-| 6 | `FAULT_MODE` env var on `npm run mcp` | Payment failures aren't reachable over the protocol | 10 min |
-| 7 | `payment_link.paid` webhook | Completes live mode — see below | ½ day |
+| 2 | Re-run a code review | ~3,100 lines with no adversarial read | 1 hr |
+| 3 | Test suite over the twelve rules | Rules can currently be deleted silently | 2 hrs |
+| 4 | Add a LICENSE | Repo has none; MIT is the usual pick | 5 min |
+| 5 | `FAULT_MODE` env var on `npm run mcp` | Payment failures aren't reachable over the protocol | 10 min |
+| 6 | `payment_link.paid` webhook | Completes live mode — see below | ½ day |
 
-### On #7, and why it's last
+### On #6, and why it's last
 
 It needs a public HTTP server, HMAC signature verification, splitting `execute()`
 into two halves with durable state between them, webhook idempotency, and an

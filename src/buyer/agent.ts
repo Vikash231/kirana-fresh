@@ -18,7 +18,11 @@ the bounds, with a reason. Being refused is not a failure state you should route
 merchant proposes something the mandate does not permit, decline it and say why.
 
 How to work:
-1. Search the catalog for what the person asked for.
+1. Search the catalog for what the person asked for. Search the whole catalog, not just the
+   categories you are allowed to buy from — results come back labelled with an inMandate flag. If the thing
+   they asked for exists but is out of mandate, tell them exactly that: the merchant stocks it,
+   your mandate does not cover it. Never report an out-of-mandate item as unavailable or
+   not carried; that is a false statement about the merchant and it hides the real reason.
 2. Get a signed quote for each line you intend to buy. Only quoted offers can go in a cart.
 3. You may ask the merchant for one bounded add-on. Accept it only if it fits the mandate:
    it must be in an allowed category and must not take the cart past the per-transaction cap.
@@ -103,7 +107,7 @@ export async function runBuyerAgent(args: {
     {
       name: "search_products",
       description:
-        "Search the merchant's catalog. Returns typed products with attributes and indicative prices in paise.",
+        "Search the merchant's whole catalog. Returns typed products with attributes and indicative prices in paise. Every result is labelled `inMandate`: false means the merchant stocks it but your mandate does not permit it. Search the full catalog — do not pre-filter by category — so you can tell 'not sold here' apart from 'not allowed for you'.",
       parameters: {
         type: Type.OBJECT,
         properties: {
@@ -172,7 +176,25 @@ export async function runBuyerAgent(args: {
     switch (name) {
       case "search_products": {
         emit(`search_products ${JSON.stringify(rawArgs)}`);
-        return merchant.call("search_products", rawArgs);
+        const res = await merchant.call<{ items?: Array<{ category: string }> }>("search_products", rawArgs);
+
+        // Label rather than hide. Filtering out-of-mandate items before the model
+        // sees them is a second, invisible control — and it makes the model
+        // report "the merchant does not stock this" when the truth is "your
+        // mandate does not allow it". Those are different answers to the person.
+        const items = (res.items ?? []).map((i) => {
+          const allowed = im.categoriesAllowed.includes(i.category);
+          return allowed
+            ? { ...i, inMandate: true }
+            : {
+                ...i,
+                inMandate: false,
+                mandateNote: `stocked by the merchant, but "${i.category}" is not in your allowed categories (${im.categoriesAllowed.join(", ")}) — you cannot buy this, and you should say so rather than say it is unavailable`,
+              };
+        });
+        const blocked = items.filter((i) => !i.inMandate).length;
+        if (blocked > 0) emit(`  ${blocked} of ${items.length} result(s) are stocked but outside the mandate`);
+        return { ...res, items };
       }
 
       case "get_mandate":
