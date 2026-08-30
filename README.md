@@ -8,6 +8,9 @@ A merchant made transactable by an AI buyer end to end, where the product is the
 > The LLM proposes. The policy engine disposes. Every rupee moves through one
 > gate, and the gate writes down what it decided and why — including the refusals.
 
+**Picking this up to work on it?** Read [PLAN.md](PLAN.md) — what runs, what
+doesn't, which decisions are load-bearing, and the traps already paid for.
+
 ---
 
 ## The thesis
